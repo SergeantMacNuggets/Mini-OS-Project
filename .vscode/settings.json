@@ -1,0 +1,18 @@
+{
+    "files.associations": {
+        "atomic": "c",
+        "bit": "c",
+        "compare": "c",
+        "cstddef": "c",
+        "deque": "c",
+        "iterator": "c",
+        "limits": "c",
+        "memory": "c",
+        "type_traits": "c",
+        "vector": "c",
+        "xlocale": "c",
+        "xmemory": "c",
+        "xstring": "c",
+        "xutility": "c"
+    }
+}
