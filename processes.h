@@ -9,9 +9,8 @@ typedef struct process {
 
 
 
-Process *create_process(unsigned short pid, char **process_name,unsigned int burst_time,unsigned int mem_alloc){
+Process *create_process(char **process_name,unsigned int burst_time,unsigned int mem_alloc){
     Process *ptr_process = (Process*) malloc(sizeof(Process));
-    ptr_process->pid = pid;
     ptr_process->process_name = process_name;
     ptr_process->burst_time = burst_time;
     ptr_process->mem_alloc = mem_alloc;
