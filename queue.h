@@ -1,15 +1,15 @@
-#include <stdlib.h>
-#include <stdio.h>
+#ifndef QUEUE_H
+#define QUEUE_H
 #include "processes.h"
 
 
-typedef struct node_queue {
+typedef struct Node_Queue {
     Process *process;
-    struct node_queue *next;
+    struct Node_Queue *next;
 }Node_Queue;
 
 
-typedef struct queue {
+typedef struct Queue {
     Node_Queue *first;
     Node_Queue *last;
 }Queue;
@@ -25,6 +25,10 @@ Node_Queue *create_node_queue(Process *ptr_process) {
 
 Queue *createQueue() {
     Queue *new_queue = (Queue*)malloc(sizeof(Queue));
+    if(!new_queue) {
+        perror("Failed to Allocate Queue");
+        exit(EXIT_FAILURE);
+    }
     new_queue->last = NULL;
     new_queue->first = new_queue->last;
     return new_queue;
@@ -59,6 +63,26 @@ void dequeue(Queue *queue) {
 }
 
 
-Node_Queue *get_current_process(Queue *queue) {
-    return (queue->first == NULL && queue->last == NULL) ? NULL : queue->first;
+Process *get_current_process(Queue *queue) {
+    return (queue->first == NULL && queue->last == NULL) ? NULL : queue->first->process;
 }
+
+void displayAllQ(Queue *q) {
+     if (q == NULL || q->first == NULL) {
+        printf("Queue is empty or not initialized.\n");
+        return;
+    }
+
+    Node_Queue *ptr = q->first;
+    while (ptr != NULL) {
+        if (ptr->process != NULL) {
+            printf("[%s] -> ", ptr->process->process_name);
+        } else {
+            printf("[NULL process] -> ");
+        }
+        ptr = ptr->next;
+    }
+    printf("NULL\n");
+}
+
+#endif

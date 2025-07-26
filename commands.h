@@ -1,9 +1,4 @@
-#include <stdlib.h>
-#include "processes.h"
-#include "queue.h"
-
-
 
 void run(Process *ptr_process) {
-
+    new_process_queue(ptr_process);
 }

@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
-#include "commands.h"
+#include <pthread.h>
 #include "processes.h"
-
+#include "commands.h"
+#include "queue.h"
+#include "schedule.h"
 typedef enum {
     RUN,
     STATUS,
@@ -14,12 +15,7 @@ typedef enum {
 
 }Command;
 
-void delay(int milli_seconds)
-{
-	clock_t start_time = clock();
-
-	while (clock() < start_time + milli_seconds);
-}
+void *loop_start();
 
 Command ret_command(char *str) {
     if(strcmp(str, "run")==0) return RUN;
@@ -30,7 +26,16 @@ Command ret_command(char *str) {
     else return INVALID;
 } 
 
-void loop_start() {
+void os_start() {
+    pthread_t dispatcher_thread;
+    pthread_t command_thread;
+    pthread_create(&dispatcher_thread, NULL, dispatcher,NULL);
+    pthread_create(&command_thread, NULL, loop_start, NULL);
+    pthread_join(dispatcher_thread, NULL);
+    pthread_join(command_thread, NULL);
+}
+
+void *loop_start() {
     char input[256];
     printf("C:/> ");
     fgets(input, sizeof(input), stdin);
@@ -47,20 +52,45 @@ void loop_start() {
             int flag = 0;
             char *input_registers[3] = {NULL};
             for (int i = 0; i < 3; i++) {
+
                 string_register = strtok(NULL, " ");
+
                 if (string_register) {
+
                     input_registers[i] = string_register;
+
                 }
                 else {
+
                     printf("run <Process-Name> <Burst-Time-In-Seconds> <Memory-Request>\n");
+
                     flag = 1;
+
                     break;
                 }
             }
             
             if(!flag) {
-                run(create_process(input_registers[0], stroi(input_registers[1]), stroi(input_registers[2])));
-                printf("%s %s %s\n", input_registers[0], input_registers[1], input_registers[2]);
+
+                unsigned int burst_time = (unsigned int) atoi(input_registers[1]);
+
+                unsigned int memory_alloc =(unsigned int) atoi(input_registers[2]);
+
+                Process *p = create_process(input_registers[0],burst_time, memory_alloc);
+
+                new_process_queue(p);
+
+                // printf("New Queue: ");
+                displayAllQ(new_queue);
+
+                // printf("Ready Queue: ");
+                displayAllQ(ready_queue);
+
+                // printf("Current Running: %s\n", running_process->process_name);
+
+                // printf("Waiting Queue: ");
+                displayAllQ(waiting_queue);
+
                 
             }
             break;
@@ -86,6 +116,6 @@ void loop_start() {
 }
 
 int main() {
-    loop_start();
+    os_start();
     return 0;
 }
