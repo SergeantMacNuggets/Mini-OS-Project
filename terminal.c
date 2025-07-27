@@ -5,6 +5,8 @@
 #include "commands.h"
 #include "queue.h"
 #include "schedule.h"
+
+
 typedef enum {
     RUN,
     STATUS,
@@ -76,20 +78,20 @@ void *loop_start() {
 
                 unsigned int memory_alloc =(unsigned int) atoi(input_registers[2]);
 
-                Process *p = create_process(input_registers[0],burst_time, memory_alloc);
+                Process *p = create_process(input_registers[0],NEW,burst_time, memory_alloc);
 
                 new_process_queue(p);
 
                 // printf("New Queue: ");
-                displayAllQ(new_queue);
+                // displayAllQ(new_queue);
 
                 // printf("Ready Queue: ");
-                displayAllQ(ready_queue);
+                // displayAllQ(ready_queue);
 
-                // printf("Current Running: %s\n", running_process->process_name);
+                // print_running();
 
                 // printf("Waiting Queue: ");
-                displayAllQ(waiting_queue);
+                // displayAllQ(waiting_queue);
 
                 
             }
@@ -97,6 +99,7 @@ void *loop_start() {
         }
         case STATUS:
             printf("Status\n");
+            status();
             break;
         case MEM:
             printf("Memory\n");
