@@ -67,9 +67,10 @@ Process *get_current_process(Queue *queue) {
     return (queue->first == NULL && queue->last == NULL) ? NULL : queue->first->process;
 }
 
+
 void displayAllQ(Queue *q) {
      if (q == NULL || q->first == NULL) {
-        printf("Queue is empty or not initialized.\n");
+        printf("Queue is empty.\n");
         return;
     }
 

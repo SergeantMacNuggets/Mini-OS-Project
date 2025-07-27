@@ -1,17 +1,16 @@
 #include <time.h>
+#include <signal.h>
 #include "processes.h"
 #include "queue.h"
 #include "linkedlist.h"
 
 #define TIME_QUANTUM 4
 
-// void delay(int milli_seconds)
-// {
+volatile sig_atomic_t stop;
 
-// 	clock_t start_time = clock();
-
-// 	while (clock() < start_time + milli_seconds);
-// }
+void inthand(int signum) {
+    stop = 1;
+}
 
 void waitFor (unsigned int secs) {
     unsigned int retTime = time(0) + secs;   // Get finishing time.
@@ -25,6 +24,7 @@ void *dispatcher();
 Queue *new_queue = NULL;
 Queue *ready_queue = NULL;
 Queue *waiting_queue = NULL;
+Queue *terminated_queue = NULL;
 Process *running_process = NULL;
 LinkedList *processes_list = NULL;
 
@@ -59,11 +59,15 @@ void running() {
         running_process = get_current_process(ready_queue);
         running_process->process_status = RUNNING;
         dequeue(ready_queue);
-        int process_time = (running_process->burst_time >= TIME_QUANTUM) ? TIME_QUANTUM : running_process->burst_time;
-        running_process->burst_time-=process_time;
+        int process_time = (running_process->burst_time >= TIME_QUANTUM) ?
+         TIME_QUANTUM : running_process->burst_time;
+
         waitFor(process_time);
+        running_process->burst_time-=process_time; 
+        
         if(running_process->burst_time<=0) {
             running_process->process_status=TERMINATED;
+            enqueue(terminated_queue, running_process);
         }
     }
 }
@@ -79,12 +83,12 @@ void waiting_process_queue() {
 }
 
 void *dispatcher() {
-    // running_process = (Process*)malloc(sizeof(Process));
 
     processes_list = create_linked_list();
     new_queue = createQueue();
     ready_queue = createQueue();
     waiting_queue = createQueue();
+    terminated_queue = createQueue();
 
     while(1){
         ready_process_queue();
@@ -95,27 +99,59 @@ void *dispatcher() {
 }
 
 void print_running() {
-    printf("Running: ");
+    printf("Running:\t\t\t");
     if(running_process!=NULL){
         printf("[%s]", running_process->process_name);
+    }
+    else {
+        printf("No Process Running");
     }
     printf("\n");
 }
 
-void display_status() {
-    while(1){
 
-        printf("New Queue: ");
+
+
+void display_status() {
+
+    signal(SIGINT, inthand);
+    stop = 0;
+    while(!stop){
+
+        display_list(processes_list);
+        waitFor(1);
+    }
+
+    system("paise");
+    return 0;
+
+}
+
+
+void display_schedule() {
+    signal(SIGINT, inthand);
+    stop = 0;
+
+    printf("\n");
+    while(!stop) {
+        printf("New Queue:\t\t\t");
         displayAllQ(new_queue);
 
-        printf("Ready Queue: ");
+        printf("Ready Queue:\t\t\t");
         displayAllQ(ready_queue);
 
         print_running();
 
-        printf("Waiting Queue: ");
+        printf("Waiting Queue:\t\t\t");
         displayAllQ(waiting_queue);
-        display_list(processes_list);
+
+        printf("Terminated Queue:\t\t");
+        displayAllQ(terminated_queue);
+
+        printf("Ctrl+C to Exit\n\n");
         waitFor(1);
     }
+
+    system("praise");
+    return 0;
 }

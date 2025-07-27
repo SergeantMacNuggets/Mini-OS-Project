@@ -42,11 +42,15 @@ char *status_name(Process *p) {
 
 void display_list(LinkedList *head) {
     LinkedList *ptr = head;
-    while(ptr!=NULL) {
+    // printf("\r");
+
+    while (ptr != NULL) {
         Process *proc = ptr->process;
-        printf("\rProcess: %s\tStatus: %s\n", proc->process_name,status_name(proc));
-        fflush(stdout);
-        ptr=ptr->next;
+        printf("Process:%s\t Status:%s\t\t Burst-Time:%d\n", proc->process_name, status_name(proc), proc->burst_time);
+        ptr = ptr->next;
     }
     printf("\n");
+
+    // fflush(stdout);
+
 }

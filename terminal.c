@@ -39,7 +39,7 @@ void os_start() {
 
 void *loop_start() {
     char input[256];
-    printf("C:/> ");
+    printf("\nC:/> ");
     fgets(input, sizeof(input), stdin);
     input[strcspn(input, "\n")] = 0;
 
@@ -50,7 +50,6 @@ void *loop_start() {
 
     switch (cmd) {
         case RUN: {
-            printf("Running\n");
             int flag = 0;
             char *input_registers[3] = {NULL};
             for (int i = 0; i < 3; i++) {
@@ -98,7 +97,6 @@ void *loop_start() {
             break;
         }
         case STATUS:
-            printf("Status\n");
             status();
             break;
         case MEM:
@@ -106,10 +104,11 @@ void *loop_start() {
             break;
         case SCHEDULE:
             printf("Schedule\n");
+            schedule();
             break;
         case EXIT:
             printf("Exit\n");
-            return;
+            exit_cmd();
         default:
             printf("Invalid command.\n");
             break;
