@@ -46,11 +46,23 @@ void display_list(LinkedList *head) {
 
     while (ptr != NULL) {
         Process *proc = ptr->process;
-        printf("Process:%s\t Status:%s\t\t Burst-Time:%d\n", proc->process_name, status_name(proc), proc->burst_time);
+        printf("Process:%s (%d)\t\t Status:%s\t\t Burst-Time:%d\n", proc->process_name,proc->pid, status_name(proc), proc->burst_time);
         ptr = ptr->next;
     }
     printf("\n");
 
     // fflush(stdout);
 
+}
+
+Process *find_process(LinkedList *head, unsigned short pid) {
+    LinkedList *ptr = head;
+
+    while(ptr!=NULL) {
+        if(ptr->process->pid == pid) {
+            return ptr->process;
+        }
+        ptr = ptr->next;
+    }
+    return NULL;
 }

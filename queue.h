@@ -44,7 +44,6 @@ void enqueue(Queue *queue, Process *process) {
     queue->last = new_node_queue;
 }
 
-
 void dequeue(Queue *queue) {
 
     if(queue->first==NULL && queue->last==NULL) {
@@ -67,6 +66,30 @@ Process *get_current_process(Queue *queue) {
     return (queue->first == NULL && queue->last == NULL) ? NULL : queue->first->process;
 }
 
+int find_n_delete(Queue *q, int process_id) {
+    if (!q || !q->first) return 0;
+
+    Node_Queue *ptr = q->first;
+
+    if (ptr->process->pid == process_id) {
+        q->first = ptr->next;
+        free(ptr);
+        return 1;
+    }
+
+    while (ptr->next != NULL) {
+        if (ptr->next->process->pid == process_id) {
+            Node_Queue *found_id = ptr->next;
+            ptr->next = ptr->next->next;
+            free(found_id);
+            return 1;
+        }
+        ptr = ptr->next;
+    }
+
+    return 0;
+
+}
 
 void displayAllQ(Queue *q) {
      if (q == NULL || q->first == NULL) {

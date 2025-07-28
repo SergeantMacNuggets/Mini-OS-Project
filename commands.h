@@ -11,6 +11,10 @@ void schedule() {
     display_schedule();
 }
 
+void kill_proc(unsigned short pid) {
+    kill_process(pid);
+}
+
 void exit_cmd() {
     exit(EXIT_SUCCESS);
 }
