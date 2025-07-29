@@ -28,6 +28,7 @@ Command ret_command(char *str) {
     else if(strcmp(str, "status")==0) return STATUS;
     else if(strcmp(str, "mem")==0) return MEM;
     else if(strcmp(str, "schedule")==0) return SCHEDULE;
+    else if(strcmp(str, "help")==0) return HELP;
     else if(strcmp(str, "exit")==0) return EXIT;
     else return INVALID;
 } 
@@ -133,9 +134,13 @@ void *loop_start() {
             printf("Schedule\n");
             schedule();
             break;
+        case HELP:
+            help();
+            break;
         case EXIT:
             printf("Exit\n");
             exit_cmd();
+            break;
         default:
             printf("Invalid command, type 'help' to list all commands.\n");
             break;
