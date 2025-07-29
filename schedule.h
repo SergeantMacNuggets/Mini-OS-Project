@@ -17,8 +17,8 @@ void inthand(int signum) {
 }
 
 void waitFor (unsigned int secs) {
-    unsigned int retTime = time(0) + secs;   // Get finishing time.
-    while (time(0) < retTime);               // Loop until it arrives.
+    unsigned int retTime = time(0) + secs;
+    while (time(0) < retTime);  
 }
 
 void *dispatcher();
@@ -84,7 +84,6 @@ void running() {
             TIME_QUANTUM : running_process->burst_time;
 
         
-        // waitFor(process_time);
         for(int i=0;i<process_time;i++)
             {
                 running_process->burst_time--;    
@@ -119,12 +118,12 @@ void *dispatcher() {
     while(1){
         ready_process_queue();
         running();
+        waitFor(1);
         waiting_process_queue();
         if(interrupted) {
             interrupted=0;
             continue;
         }
-        waitFor(1);
     }
 }
 
