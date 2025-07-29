@@ -27,7 +27,7 @@ Queue *waiting_queue = NULL;
 Queue *terminated_queue = NULL;
 Process *running_process = NULL;
 LinkedList *processes_list = NULL;
-int interrupted = 0;
+volatile int interrupted = 0;
 
 
 void new_process_queue(Process *process) {
@@ -40,48 +40,85 @@ void new_process_queue(Process *process) {
     }
 }
 
-void ready_process_queue() {
-    if(get_current_process(waiting_queue) != NULL) {
-        Process *peak_waiting_process = get_current_process(waiting_queue);
-        peak_waiting_process->process_status = READY;
-        enqueue(ready_queue, peak_waiting_process);
-        dequeue(waiting_queue);
-    }
 
-    if(get_current_process(new_queue) != NULL) {
-        Process *peak_new_process = get_current_process(new_queue);
-        peak_new_process->process_status = READY;
-        enqueue(ready_queue, peak_new_process);
-        dequeue(new_queue);
+void terminate(Process *ptr_process) {
+    ptr_process->process_status = TERMINATED;
+    ptr_process->burst_time=0;
+    enqueue(terminated_queue, ptr_process);
+}
+
+void ready_process_queue() {
+    if(get_current_process(waiting_queue)!=NULL && get_current_process(waiting_queue)<=0) {
+        terminate(get_current_process(waiting_queue));
     }
+    else {
+        if(get_current_process(waiting_queue) != NULL) {
+            Process *peak_waiting_process = get_current_process(waiting_queue);
+            peak_waiting_process->process_status = READY;
+            enqueue(ready_queue, peak_waiting_process);
+            dequeue(waiting_queue);
+        }
+
+        if(get_current_process(new_queue) != NULL) {
+            Process *peak_new_process = get_current_process(new_queue);
+            peak_new_process->process_status = READY;
+            enqueue(ready_queue, peak_new_process);
+            dequeue(new_queue);
+        }
+}
 
 }
 
 void running() {
-    if(get_current_process(ready_queue) != NULL) {
+    // if(get_current_process(ready_queue)!=NULL && running_process != NULL && running_process->burst_time <= 0) {
+    //     terminate(get_current_process(ready_queue));
+    // }
+    // else if(get_current_process(ready_queue) != NULL) {
+    //     running_process = get_current_process(ready_queue);
+    //     running_process->process_status = RUNNING;
+    //     dequeue(ready_queue);
+        
+    //     int process_time = (running_process->burst_time >= TIME_QUANTUM) ?
+    //             TIME_QUANTUM : running_process->burst_time;
+
+    //     waitFor(process_time);
+    //     running_process->burst_time -= process_time;
+
+    //     if(running_process->burst_time <= 0) {
+    //         running_process->process_status = TERMINATED;
+    //         enqueue(terminated_queue, running_process);
+    //     }
+    // }
+
+    if (get_current_process(ready_queue) != NULL) {
         running_process = get_current_process(ready_queue);
-        running_process->process_status = RUNNING;
         dequeue(ready_queue);
+
+        running_process->process_status = RUNNING;
         int process_time = (running_process->burst_time >= TIME_QUANTUM) ?
-         TIME_QUANTUM : running_process->burst_time;
+            TIME_QUANTUM : running_process->burst_time;
 
         waitFor(process_time);
-        running_process->burst_time-=process_time; 
-        
-        if(running_process->burst_time<=0) {
-            running_process->process_status=TERMINATED;
+        running_process->burst_time -= process_time;
+
+        if (running_process->burst_time <= 0) {
+            running_process->process_status = TERMINATED;
             enqueue(terminated_queue, running_process);
+            running_process = NULL;  // Ensure this is cleared
         }
     }
+
 }
 
 void waiting_process_queue() {
-    if(running_process!=NULL && running_process->burst_time > 0) {
-        running_process->process_status = WAITING;
-        enqueue(waiting_queue, running_process);
-        running_process = NULL;
-    } else {
-        running_process = NULL;
+    if (running_process != NULL) {
+        if (running_process->burst_time <= 0) {
+            terminate(running_process);
+        } else {
+            running_process->process_status = WAITING;
+            enqueue(waiting_queue, running_process);
+        }
+        running_process = NULL;  // Ensure it’s reset to avoid reuse
     }
 }
 
@@ -96,6 +133,7 @@ void *dispatcher() {
     while(1){
         if(interrupted) {
             interrupted = 0;
+            waitFor(1);
         }
         else {
             ready_process_queue();
@@ -103,6 +141,10 @@ void *dispatcher() {
             waiting_process_queue();
             waitFor(1);
         }
+        // ready_process_queue();
+        // running();
+        // waiting_process_queue();
+        // waitFor(1);
     }
 }
 
@@ -121,28 +163,29 @@ void kill_process(unsigned short pid) {
     Process *p = find_process(processes_list, pid);
     if (p != NULL) {
         interrupted = 1;
-        waitFor(1);
+        // p->burst_time=0;
+        // waitFor(1);
 
         switch (p->process_status) {
             case READY:
                 if (ready_queue && find_n_delete(ready_queue, p->pid)) {
-                    p->process_status = TERMINATED;
-                    enqueue(terminated_queue, p);
+                    terminate(p);
                 }
                 break;
 
             case WAITING:
                 if (waiting_queue && find_n_delete(waiting_queue, p->pid)) {
-                    p->process_status = TERMINATED;
-                    enqueue(terminated_queue, p);
+                    terminate(p);
                 }
                 break;
 
             case RUNNING:
                 if (running_process && running_process->pid == p->pid) {
-                    running_process->process_status = TERMINATED;
-                    enqueue(terminated_queue, running_process);
-                    running_process = NULL; // clear it to avoid reuse
+                    terminate(p);
+                    
+                    p=NULL;
+                    running_process=p;
+                    printf("Running\n");
                 }
                 break;
 
@@ -150,8 +193,9 @@ void kill_process(unsigned short pid) {
                 break;
         }
     }
-    
 }
+
+
 
 
 void display_status() {

@@ -32,7 +32,7 @@ Command ret_command(char *str) {
 } 
 
 void os_start() {
-    create_memory();
+    // create_memory();
     pthread_t dispatcher_thread;
     pthread_t command_thread;
     pthread_create(&dispatcher_thread, NULL, dispatcher,NULL);
