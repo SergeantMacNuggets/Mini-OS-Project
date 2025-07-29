@@ -8,6 +8,10 @@
 
 volatile sig_atomic_t stop;
 
+typedef struct Running {
+    Process *running_process;
+}Running;
+
 void inthand(int signum) {
     stop = 1;
 }
@@ -33,7 +37,7 @@ volatile int interrupted = 0;
 void new_process_queue(Process *process) {
     if(process != NULL){
         srand(time(NULL));
-        int random_pid = rand() % 1000 + 1;
+        int random_pid = rand() % 10000 + 1;
         process->pid = random_pid;
         enqueue(new_queue, process);
         add_element(processes_list, process);
@@ -48,7 +52,7 @@ void terminate(Process *ptr_process) {
 }
 
 void ready_process_queue() {
-    if(get_current_process(waiting_queue)!=NULL && get_current_process(waiting_queue)<=0) {
+    if(get_current_process(waiting_queue)!=NULL && get_current_process(waiting_queue)->burst_time<=0) {
         terminate(get_current_process(waiting_queue));
     }
     else {
@@ -70,27 +74,8 @@ void ready_process_queue() {
 }
 
 void running() {
-    // if(get_current_process(ready_queue)!=NULL && running_process != NULL && running_process->burst_time <= 0) {
-    //     terminate(get_current_process(ready_queue));
-    // }
-    // else if(get_current_process(ready_queue) != NULL) {
-    //     running_process = get_current_process(ready_queue);
-    //     running_process->process_status = RUNNING;
-    //     dequeue(ready_queue);
-        
-    //     int process_time = (running_process->burst_time >= TIME_QUANTUM) ?
-    //             TIME_QUANTUM : running_process->burst_time;
-
-    //     waitFor(process_time);
-    //     running_process->burst_time -= process_time;
-
-    //     if(running_process->burst_time <= 0) {
-    //         running_process->process_status = TERMINATED;
-    //         enqueue(terminated_queue, running_process);
-    //     }
-    // }
-
-    if (get_current_process(ready_queue) != NULL) {
+    if(!get_current_process(ready_queue)) return;
+    else {
         running_process = get_current_process(ready_queue);
         dequeue(ready_queue);
 
@@ -98,28 +83,25 @@ void running() {
         int process_time = (running_process->burst_time >= TIME_QUANTUM) ?
             TIME_QUANTUM : running_process->burst_time;
 
+        
         waitFor(process_time);
-        running_process->burst_time -= process_time;
+        running_process->burst_time -= process_time;    
 
-        if (running_process->burst_time <= 0) {
-            running_process->process_status = TERMINATED;
-            enqueue(terminated_queue, running_process);
-            running_process = NULL;  // Ensure this is cleared
-        }
     }
 
 }
 
 void waiting_process_queue() {
-    if (running_process != NULL) {
-        if (running_process->burst_time <= 0) {
-            terminate(running_process);
-        } else {
-            running_process->process_status = WAITING;
-            enqueue(waiting_queue, running_process);
-        }
-        running_process = NULL;  // Ensure it’s reset to avoid reuse
+    if (!running_process) return;
+
+    if (running_process->process_status == TERMINATED || running_process->burst_time <= 0) {
+        running_process->process_status = TERMINATED;
+        enqueue(terminated_queue, running_process);
+    } else {
+        running_process->process_status = WAITING;
+        enqueue(waiting_queue, running_process);
     }
+    running_process = NULL;
 }
 
 void *dispatcher() {
@@ -131,20 +113,14 @@ void *dispatcher() {
     terminated_queue = createQueue();
 
     while(1){
+        ready_process_queue();
+        running();
+        waiting_process_queue();
         if(interrupted) {
-            interrupted = 0;
-            waitFor(1);
+            interrupted=0;
+            continue;
         }
-        else {
-            ready_process_queue();
-            running();
-            waiting_process_queue();
-            waitFor(1);
-        }
-        // ready_process_queue();
-        // running();
-        // waiting_process_queue();
-        // waitFor(1);
+        waitFor(1);
     }
 }
 
@@ -159,39 +135,14 @@ void print_running() {
     printf("\n");
 }
 
+
 void kill_process(unsigned short pid) {
     Process *p = find_process(processes_list, pid);
     if (p != NULL) {
+        p->process_status=TERMINATED;
+        p->burst_time=0;
+
         interrupted = 1;
-        // p->burst_time=0;
-        // waitFor(1);
-
-        switch (p->process_status) {
-            case READY:
-                if (ready_queue && find_n_delete(ready_queue, p->pid)) {
-                    terminate(p);
-                }
-                break;
-
-            case WAITING:
-                if (waiting_queue && find_n_delete(waiting_queue, p->pid)) {
-                    terminate(p);
-                }
-                break;
-
-            case RUNNING:
-                if (running_process && running_process->pid == p->pid) {
-                    terminate(p);
-                    
-                    p=NULL;
-                    running_process=p;
-                    printf("Running\n");
-                }
-                break;
-
-            default:
-                break;
-        }
     }
 }
 
@@ -227,7 +178,7 @@ void display_schedule() {
         displayAllQ(ready_queue);
 
         print_running();
-
+        
         printf("Waiting Queue:\t\t\t");
         displayAllQ(waiting_queue);
 

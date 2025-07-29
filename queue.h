@@ -66,28 +66,60 @@ Process *get_current_process(Queue *queue) {
     return (queue->first == NULL && queue->last == NULL) ? NULL : queue->first->process;
 }
 
-int find_n_delete(Queue *q, int process_id) {
-    if (!q || !q->first) return 0;
+void find_n_delete(Queue *q, int process_id) {
+    // if (!q || !q->first) return 0;
 
+    // Node_Queue *ptr = q->first;
+
+    // if (ptr->process->pid == process_id) {
+    //     q->first = ptr->next;
+    //     free(ptr);
+    //     return 1;
+    // }
+
+    // while (ptr->next != NULL) {
+    //     if (ptr->next->process->pid == process_id) {
+    //         Node_Queue *found_id = ptr->next;
+    //         ptr->next = ptr->next->next;
+    //         free(found_id);
+    //         return 1;
+    //     }
+    //     ptr = ptr->next;
+    // }
+
+    // return 0;
+    if (!q || !q->first) return;
+    
     Node_Queue *ptr = q->first;
-
+    
+    // Case 1: Deleting the first node
     if (ptr->process->pid == process_id) {
         q->first = ptr->next;
+        
+        // If this was the only node, update last pointer
+        if (q->last == ptr) {
+            q->last = NULL;
+        }
+        
         free(ptr);
-        return 1;
+        return;
     }
-
+    
+    // Case 2: Deleting a middle or last node
     while (ptr->next != NULL) {
         if (ptr->next->process->pid == process_id) {
-            Node_Queue *found_id = ptr->next;
-            ptr->next = ptr->next->next;
-            free(found_id);
-            return 1;
+            Node_Queue *found_node = ptr->next;
+            ptr->next = ptr->next->next;            
+            // If we're deleting the last node, update last pointer
+            if (q->last == found_node) {
+                q->last = ptr;
+            }
+            
+            free(found_node);
+            return;
         }
         ptr = ptr->next;
     }
-
-    return 0;
 
 }
 

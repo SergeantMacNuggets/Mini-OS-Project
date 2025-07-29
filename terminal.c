@@ -15,6 +15,7 @@ typedef enum {
     MEM,
     SCHEDULE,
     EXIT,
+    HELP,
     INVALID
 
 }Command;
@@ -113,11 +114,15 @@ void *loop_start() {
             if(!flag) {
 
                 unsigned short pid = (unsigned int) atoi(input_registers[0]);
-
+                if(!find_process(processes_list, pid)) {
+                    printf("Process ID Not Found %d\n", pid);
+                    break;
+                }
                 kill_proc(pid);
                 
             }
-            break;}
+            break;
+        }
         case STATUS:
             status();
             break;
@@ -132,7 +137,7 @@ void *loop_start() {
             printf("Exit\n");
             exit_cmd();
         default:
-            printf("Invalid command.\n");
+            printf("Invalid command, type 'help' to list all commands.\n");
             break;
     }
 
