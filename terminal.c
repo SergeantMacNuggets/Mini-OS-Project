@@ -34,7 +34,7 @@ Command ret_command(char *str) {
 } 
 
 void os_start() {
-    // create_memory();
+    create_memory();
     pthread_t dispatcher_thread;
     pthread_t command_thread;
     pthread_create(&dispatcher_thread, NULL, dispatcher,NULL);
@@ -83,9 +83,15 @@ void *loop_start() {
 
                 unsigned int memory_alloc =(unsigned int) atoi(input_registers[2]);
 
-                Process *p = create_process(input_registers[0],NEW,burst_time, memory_alloc);
+                if(memory_alloc > partitioned_size()) {
+                    printf("Not enought memory size in %d byte partition to fit memory request\n", partitioned_size());
+                }
 
-                new_process_queue(p);
+                else{
+                    Process *p = create_process(input_registers[0],NEW,burst_time, memory_alloc);
+
+                    new_process_queue(p);
+                }
                 
             }
             break;
@@ -128,7 +134,7 @@ void *loop_start() {
             status();
             break;
         case MEM:
-            printf("Memory\n");
+            mem();
             break;
         case SCHEDULE:
             printf("Schedule\n");

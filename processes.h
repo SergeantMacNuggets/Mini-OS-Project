@@ -16,6 +16,7 @@ typedef struct Process {
     char *process_name;
     unsigned int burst_time;
     unsigned int mem_alloc;
+    unsigned int mem_addr;
     Status process_status;
     
 } Process;

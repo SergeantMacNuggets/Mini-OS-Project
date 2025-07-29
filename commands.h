@@ -1,4 +1,5 @@
 
+
 void run(Process *ptr_process) {
     new_process_queue(ptr_process);
 }
@@ -9,6 +10,10 @@ void status() {
 
 void schedule() {
     display_schedule();
+}
+
+void mem() {
+    display_mem();
 }
 
 void kill_proc(unsigned short pid) {

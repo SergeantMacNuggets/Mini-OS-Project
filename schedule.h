@@ -1,6 +1,7 @@
 #include <time.h>
 #include <signal.h>
 #include "processes.h"
+#include "memory_partition.h"
 #include "queue.h"
 #include "linkedlist.h"
 
@@ -52,29 +53,69 @@ void terminate(Process *ptr_process) {
 }
 
 void ready_process_queue() {
-    if(get_current_process(waiting_queue)!=NULL && get_current_process(waiting_queue)->burst_time<=0) {
-        terminate(get_current_process(waiting_queue));
-    }
-    else {
+        if(running_process!=NULL) {
+            if(running_process->process_status==TERMINATED || running_process->burst_time <= 0) {
+                enqueue(terminated_queue, running_process);
+                running_process=NULL;
+            }
+            else {
+                running_process->process_status = READY;
+                enqueue(ready_queue,running_process);
+                running_process=NULL;
+            }
+        }
+
         if(get_current_process(waiting_queue) != NULL) {
             Process *peak_waiting_process = get_current_process(waiting_queue);
-            peak_waiting_process->process_status = READY;
-            enqueue(ready_queue, peak_waiting_process);
-            dequeue(waiting_queue);
+            if(peak_waiting_process->process_status==TERMINATED || peak_waiting_process->burst_time <= 0) {
+                enqueue(terminated_queue, peak_waiting_process);
+                dequeue(waiting_queue);
+                
+            }
+            else {
+                for(int i=0;i<NUM_PARTITION;i++) {
+                    if(memory_partitions[i]->process==NULL) {
+                        peak_waiting_process->process_status = READY;
+                        peak_waiting_process->mem_addr = i;
+                        memory_partitions[i]->process = peak_waiting_process;
+                        enqueue(ready_queue, peak_waiting_process);
+                        dequeue(waiting_queue);
+                    }
+                }   
+            }
         }
 
         if(get_current_process(new_queue) != NULL) {
             Process *peak_new_process = get_current_process(new_queue);
-            peak_new_process->process_status = READY;
-            enqueue(ready_queue, peak_new_process);
+            for(int i=0 ;i<=NUM_PARTITION;i++) {
+                if(i==NUM_PARTITION) {
+                    peak_new_process->process_status=WAITING;
+                    enqueue(waiting_queue, peak_new_process);
+                    break;
+                } 
+                else if(memory_partitions[i]->process==NULL) {
+                    peak_new_process->process_status=READY;
+                    peak_new_process->mem_addr = i;
+                    memory_partitions[i]->process = peak_new_process;
+                    enqueue(ready_queue,peak_new_process);
+                    break;
+                }
+            }
             dequeue(new_queue);
         }
-}
 
 }
+        
 
 void running() {
-    if(!get_current_process(ready_queue)) return;
+    Process *ready = get_current_process(ready_queue);
+    if(!ready) return;
+    
+    else if(ready && ready->process_status == TERMINATED) {
+        enqueue(terminated_queue, ready);
+        // memory_partitions[ready->mem_addr]->process = NULL;
+        dequeue(ready_queue);
+    }
     else {
         running_process = get_current_process(ready_queue);
         dequeue(ready_queue);
@@ -84,28 +125,21 @@ void running() {
             TIME_QUANTUM : running_process->burst_time;
 
         
-        for(int i=0;i<process_time;i++)
-            {
-                running_process->burst_time--;    
-                waitFor(1);
-            }
-
+        for(int i=0;i<process_time;i++) {
+            running_process->burst_time--;    
+            waitFor(1);
+        }
+        if(running_process->burst_time <= 0) {
+            running_process->process_status = TERMINATED;
+            enqueue(terminated_queue, running_process);
+            memory_partitions[running_process->mem_addr]->process = NULL;
+            running_process=NULL;
+            
+        }
     }
 
 }
 
-void waiting_process_queue() {
-    if (!running_process) return;
-
-    if (running_process->process_status == TERMINATED || running_process->burst_time <= 0) {
-        running_process->process_status = TERMINATED;
-        enqueue(terminated_queue, running_process);
-    } else {
-        running_process->process_status = WAITING;
-        enqueue(waiting_queue, running_process);
-    }
-    running_process = NULL;
-}
 
 void *dispatcher() {
 
@@ -118,12 +152,11 @@ void *dispatcher() {
     while(1){
         ready_process_queue();
         running();
-        waitFor(1);
-        waiting_process_queue();
         if(interrupted) {
             interrupted=0;
             continue;
         }
+        waitFor(1);
     }
 }
 
@@ -144,7 +177,7 @@ void kill_process(unsigned short pid) {
     if (p != NULL) {
         p->process_status=TERMINATED;
         p->burst_time=0;
-
+        memory_partitions[p->mem_addr]->process=NULL;
         interrupted = 1;
     }
 }
@@ -157,14 +190,27 @@ void display_status() {
     signal(SIGINT, inthand);
     stop = 0;
     while(!stop){
-
+        if(processes_list->process==NULL) {
+            printf("No Process has been created\n");
+            return 0;
+        }
         display_list(processes_list);
         waitFor(1);
     }
 
     system("paise");
     return 0;
+}
 
+void display_mem() {
+    signal(SIGINT, inthand);
+    stop = 0;
+    while(!stop) {
+        display_memory();
+        waitFor(1);
+    }
+    system("praise");
+    return 0;
 }
 
 
