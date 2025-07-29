@@ -75,7 +75,7 @@ void displayAllQ(Queue *q) {
     Node_Queue *ptr = q->first;
     while (ptr != NULL) {
         if (ptr->process != NULL) {
-            printf("[%s] -> ", ptr->process->process_name);
+            printf("[%s:%ds] -> ", ptr->process->process_name, ptr->process->burst_time);
         } else {
             printf("[NULL process] -> ");
         }

@@ -41,18 +41,24 @@ char *status_name(Process *p) {
 }
 
 void display_list(LinkedList *head) {
-    LinkedList *ptr = head;
-    // printf("\r");
+    // LinkedList *ptr = head;
+    // while (ptr != NULL) {
+    //     Process *proc = ptr->process;
+    //     printf("Process: %s (%d)                    \tStatus: %-10s            \tBurst-Time: %d\n", 
+    //            proc->process_name, proc->pid, status_name(proc), proc->burst_time);
+    //     ptr = ptr->next;
+    // }
+    // printf("\n");
 
+    LinkedList *ptr = head;
+    printf("\033[2J\033[H"); // Clear screen and move cursor to top
     while (ptr != NULL) {
         Process *proc = ptr->process;
-        printf("Process:%s (%d)\t\t Status:%s\t\t Burst-Time:%d\n", proc->process_name,proc->pid, status_name(proc), proc->burst_time);
+        printf("Process: %s (%d)                    \tStatus: %-10s            \tBurst-Time: %d\n", 
+               proc->process_name, proc->pid, status_name(proc), proc->burst_time);
         ptr = ptr->next;
     }
-    printf("\n");
-
-    // fflush(stdout);
-
+    fflush(stdout);
 }
 
 Process *find_process(LinkedList *head, unsigned short pid) {

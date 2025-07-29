@@ -84,8 +84,12 @@ void running() {
             TIME_QUANTUM : running_process->burst_time;
 
         
-        waitFor(process_time);
-        running_process->burst_time -= process_time;    
+        // waitFor(process_time);
+        for(int i=0;i<process_time;i++)
+            {
+                running_process->burst_time--;    
+                waitFor(1);
+            }
 
     }
 
@@ -127,7 +131,7 @@ void *dispatcher() {
 void print_running() {
     printf("Running:\t\t\t");
     if(running_process!=NULL) {
-        printf("[%s]", running_process->process_name);
+        printf("[%s:%ds]", running_process->process_name,running_process->burst_time);
     }
     else {
         printf("No Process Running");
