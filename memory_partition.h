@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 
-#define NUM_PARTITION 4
+// #define NUM_PARTITION 4
 
 typedef struct Partition {
     Process *process;
@@ -14,9 +14,12 @@ typedef struct Partition {
 }Partition;
 
 int total_memory;
-Partition *memory_partitions[NUM_PARTITION]={NULL};
+int NUM_PARTITION;
+Partition **memory_partitions={NULL};
 
 Partition *create_partition(int mem_size) {
+
+    //Node for the memory partition
     Partition *ptr = (Partition*)malloc(sizeof(Partition));
     ptr->max_mem=mem_size;
     ptr->free_mem = mem_size;
@@ -27,6 +30,11 @@ Partition *create_partition(int mem_size) {
 void create_memory() {
     printf("Enter total memory size (in bytes): ");
     scanf("%d", &total_memory);
+    printf("Enter number of memory partitions: ");
+    scanf("%d",  &NUM_PARTITION);
+
+    //Create a memory partition nodes for processor to run
+    memory_partitions = (Partition**)malloc(NUM_PARTITION * sizeof(Partition*));
     divide_memory();
 }
 

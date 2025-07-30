@@ -35,7 +35,11 @@ Command ret_command(char *str) {
 
 void os_start() {
     create_memory();
+
+    //Dispatcher Thread for Starting Queing iteratively
     pthread_t dispatcher_thread;
+
+    //User input command thread
     pthread_t command_thread;
     pthread_create(&dispatcher_thread, NULL, dispatcher,NULL);
     pthread_create(&command_thread, NULL, loop_start, NULL);
@@ -43,6 +47,8 @@ void os_start() {
     pthread_join(command_thread, NULL);
 }
 
+
+//Command Prompt input function
 void *loop_start() {
     char input[256];
     printf("\nCMD:/> ");
@@ -50,6 +56,8 @@ void *loop_start() {
     input[strcspn(input, "\n")] = 0;
 
     char *string_register = strtok(input, " ");
+
+    //if user input is empty recursion happen;
     if (!string_register) return loop_start();
 
     Command cmd = ret_command(string_register);
@@ -63,12 +71,13 @@ void *loop_start() {
                 string_register = strtok(NULL, " ");
 
                 if (string_register) {
-
+                    //start reading the command and its base values
                     input_registers[i] = string_register;
 
                 }
                 else {
 
+                    //If some base values is inputted wrong error print occur
                     printf("run <Process-Name> <Burst-Time-In-Seconds> <Memory-Request>\n");
 
                     flag = 1;
@@ -78,6 +87,8 @@ void *loop_start() {
             }
             
             if(!flag) {
+
+                //If all input was correct run command starts
 
                 unsigned int burst_time = (unsigned int) atoi(input_registers[1]);
 
@@ -103,8 +114,10 @@ void *loop_start() {
 
                 string_register = strtok(NULL, " ");
 
+                //ALL Same from run command
                 if (string_register) {
 
+                    
                     input_registers[i] = string_register;
 
                 }
@@ -137,14 +150,12 @@ void *loop_start() {
             mem();
             break;
         case SCHEDULE:
-            printf("Schedule\n");
             schedule();
             break;
         case HELP:
             help();
             break;
         case EXIT:
-            printf("Exit\n");
             exit_cmd();
             break;
         default:

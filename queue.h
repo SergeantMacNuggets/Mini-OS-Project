@@ -14,6 +14,7 @@ typedef struct Queue {
     Node_Queue *last;
 }Queue;
 
+//Typical Queueing algorithm codes and procedures
 
 Node_Queue *create_node_queue(Process *ptr_process) {
     Node_Queue *n_queue = (Node_Queue*) malloc(sizeof(Node_Queue));
