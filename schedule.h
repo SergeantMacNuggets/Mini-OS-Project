@@ -159,12 +159,13 @@ void running() {
         int process_time = (running_process->burst_time >= TIME_QUANTUM) ?
             TIME_QUANTUM : running_process->burst_time;
 
-        
+
         for(int i=0;i<process_time;i++) {
 
-            running_process->burst_time--;    
-
             waitFor(1);
+            running_process->burst_time--;    
+            
+
         }
         if(running_process->burst_time <= 0) {
 
@@ -254,7 +255,7 @@ void display_mem() {
     signal(SIGINT, inthand);
     stop = 0;
     while(!stop) {
-        display_memory();
+        display_memory(waiting_queue);
         waitFor(1);
     }
     system("praise");

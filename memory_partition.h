@@ -4,7 +4,6 @@
 #include <stdlib.h>
 
 
-// #define NUM_PARTITION 4
 
 typedef struct Partition {
     Process *process;
@@ -48,7 +47,7 @@ void divide_memory() {
     }
 }
 
-void display_memory() {
+void display_memory(Queue *wait_q) {
     int total_usage = 0;
     int total_free = total_memory;
     printf("\033[2J\033[H");
@@ -66,6 +65,8 @@ void display_memory() {
         }
     }
     printf("\nTotal Usage: %d bytes     \tTotal Free: %d bytes\n", total_usage, total_free);
+    printf("Waiting Process:\t\t");
+    displayAllQ(wait_q);
     printf("Ctrl + C to exit\n");
     fflush(stdout);
 }
