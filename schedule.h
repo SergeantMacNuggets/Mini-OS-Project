@@ -248,7 +248,6 @@ void display_status() {
     }
 
     system("paise");
-    return 0;
 }
 
 void display_mem() {
@@ -259,7 +258,6 @@ void display_mem() {
         waitFor(1);
     }
     system("praise");
-    return 0;
 }
 
 
@@ -288,5 +286,4 @@ void display_schedule() {
     }
 
     system("praise");
-    return 0;
 }
