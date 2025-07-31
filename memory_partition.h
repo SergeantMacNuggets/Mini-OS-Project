@@ -51,6 +51,7 @@ void display_memory(Queue *wait_q) {
     int total_usage = 0;
     int total_free = total_memory;
     printf("\033[2J\033[H");
+    printf("Memory Partitions:\n");
     for(int i = 0; i < NUM_PARTITION; i++) {
         if(memory_partitions[i]->process != NULL) {
             Process *temp = memory_partitions[i]->process;

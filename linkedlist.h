@@ -44,6 +44,7 @@ void display_list(LinkedList *head) {
 
     LinkedList *ptr = head;
     printf("\033[2J\033[H");
+    printf("Process Status:\n");
     while (ptr != NULL) {
         Process *proc = ptr->process;
         printf("Process: %s (%d)                    \tStatus: %-10s            \tBurst-Time: %d\n", 
