@@ -9,9 +9,9 @@ proram
 How To Run:
 To compile and run make sure the Makefile is in the folder, then type in the terminal:
               
-            DIR/>$ make final
+            DIR/>$ make terminal
 
 To run again make sure to clean first the output file, type:
           
             DIR/>$ make clean
-            DIR/>% make final
+            DIR/>% make terminal
