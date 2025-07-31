@@ -241,7 +241,7 @@ void display_status() {
     while(!stop){
         if(processes_list->process==NULL) {
             printf("No Process has been created\n");
-            return 0;
+            return;
         }
         display_list(processes_list);
         waitFor(1);
