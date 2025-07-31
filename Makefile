@@ -13,4 +13,4 @@ terminal.o: terminal.c
 
 clean:
 	@echo "Removing all executable"
-	@rm terminal.o terminal_start
+	@rm terminal.o terminal.exe terminal_start 
